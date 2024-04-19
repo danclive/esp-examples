@@ -4,8 +4,8 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 
 > 一些使用 [esp-hal](https://github.com/esp-rs/esp-hal) 的例子：
 
-- [x] blinky: Blinks an LED and output logs
-- [ ] embassy_blinky: use embassy to blinks an LED and output logs
+- [x] [blinky](blinky): Blinks an LED and output logs
+- [x] [embassy_blinky](embassy_blinky): use embassy to blinks an LED and output logs
 - [ ] wifi: connect to wifi
 - [ ] embassy_wifi: use embassy to connect to wifi
 

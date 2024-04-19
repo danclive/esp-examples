@@ -1,7 +1,7 @@
 [package]
-name = "blinky"
+name = "embassy_blinky"
 version = "0.0.0"
-description = "blinky"
+description = "embassy_blinky"
 readme = "README.md"
 keywords = ["esp-hal", "esp32"]
 license = "MIT"
@@ -13,6 +13,7 @@ default = [
     "esp32c6",
     "jtag",
     "log",
+    "embassy"
 ]
 
 log = [
@@ -20,6 +21,7 @@ log = [
     "esp-hal/log",
     "esp-println/log",
     "esp-backtrace/println",
+    "embassy-executor?/log",
 ]
 
 defmt = [
@@ -27,6 +29,7 @@ defmt = [
     "esp-hal/defmt",
     "esp-println/defmt-espflash",
     "esp-backtrace/defmt",
+    "embassy-executor?/defmt",
 ]
 
 jtag = ["esp-println/jtag-serial"]
@@ -35,6 +38,14 @@ uart = ["esp-println/uart"]
 esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
 esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
 
+embassy = [
+    "esp-hal/embassy",
+    "esp-hal/embassy-time-timg0",
+    "embassy-executor",
+    "embassy-time",
+    "embassy-executor/task-arena-size-20480"
+]
+
 [dependencies]
 esp-hal = { version = "0.17.0" }
 esp-println = { version = "0.9", default-features = false, features = ["critical-section", "colors"] }
@@ -42,6 +53,10 @@ esp-backtrace = { version = "0.11", features = ["panic-handler", "exception-hand
 
 defmt = { version = "0.3", optional = true }
 log = { version = "0.4", optional = true }
+
+embassy-executor = { version = "0.5", package = "embassy-executor",features = [
+    "executor-thread", "integrated-timers", "arch-riscv32"], optional = true }
+embassy-time = { version = "0.3", optional = true }
 
 # Time library for embedded targets with ease-of-use and performance first.
 fugit = "0.3"
