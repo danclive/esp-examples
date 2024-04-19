@@ -1,0 +1,44 @@
+[package]
+name = "blinky"
+version = "0.0.0"
+description = "some examples of esp-hal"
+readme = "README.md"
+keywords = ["esp-hal", "esp32"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77"
+
+[features]
+default = [
+    "esp32c6",
+    "jtag",
+    "log",
+]
+
+log = [
+    "dep:log",
+    "esp-hal/log",
+    "esp-println/log",
+    "esp-backtrace/println",
+]
+
+defmt = [
+    "dep:defmt",
+    "esp-hal/defmt",
+    "esp-println/defmt-espflash",
+    "esp-backtrace/defmt",
+]
+
+jtag = ["esp-println/jtag-serial"]
+uart = ["esp-println/uart"]
+
+esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
+
+[dependencies]
+esp-hal = { version = "0.17.0" }
+esp-println = { version = "0.9", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.11", features = ["panic-handler", "exception-handler"]  }
+
+defmt = { version = "0.3", optional = true }
+log = { version = "0.4", optional = true }
