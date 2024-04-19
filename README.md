@@ -4,7 +4,7 @@ some examples of esp-hal：
 
 > 一些使用 esp-hal 的例子：
 
-- blinky: Blinks an LED
+- blinky: Blinks an LED and output logs // 点亮LED并输出日志
 
 Unlike the examples that come with esp-hal, each example is separate and handles dependencies, so you can just copy an example to get a quick start on your project.
 
