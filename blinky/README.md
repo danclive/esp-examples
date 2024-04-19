@@ -74,7 +74,9 @@ rustflags = [
 ]
 ```
 
-之所以推荐 log 而不是 defmt，因为 defmt 目前还不能正确输出 backtrace, 不知道未来能不能解决。
+The reason why log is recommended over defmt is that defmt currently does not output backtrace correctly, and I don't know if this will be fixed in the future.
+
+> 之所以推荐 log 而不是 defmt，因为 defmt 目前还不能正确输出 backtrace, 不知道未来能不能解决。
 
 use log:
 
