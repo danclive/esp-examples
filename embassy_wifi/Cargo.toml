@@ -13,7 +13,8 @@ default = [
     "esp32c6",
     "jtag",
     "log",
-    "embassy"
+    "embassy",
+    "wifi",
 ]
 
 log = [
@@ -22,6 +23,7 @@ log = [
     "esp-println/log",
     "esp-backtrace/println",
     "embassy-executor?/log",
+    "esp-wifi?/log",
 ]
 
 defmt = [
@@ -30,13 +32,15 @@ defmt = [
     "esp-println/defmt-espflash",
     "esp-backtrace/defmt",
     "embassy-executor?/defmt",
+    "esp-wifi?/defmt",
+    "embassy-net?/defmt"
 ]
 
 jtag = ["esp-println/jtag-serial"]
 uart = ["esp-println/uart"]
 
-esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
-esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
+esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3", "esp-wifi?/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6", "esp-wifi?/esp32c6"]
 
 embassy = [
     "esp-hal/embassy",
@@ -44,6 +48,12 @@ embassy = [
     "embassy-executor",
     "embassy-time",
     "embassy-executor/task-arena-size-20480"
+]
+
+wifi = [
+    "esp-wifi",
+    "esp-wifi/embassy-net",
+    "embassy-net",
 ]
 
 [dependencies]
@@ -57,3 +67,7 @@ log = { version = "0.4", optional = true }
 embassy-executor = { version = "0.5", package = "embassy-executor",features = [
     "executor-thread", "integrated-timers", "arch-riscv32"], optional = true }
 embassy-time = { version = "0.3", optional = true }
+
+esp-wifi  = { version = "0.5", default-features = false, features = [
+    "wifi", "ipv4", "tcp", "udp", "icmp", "igmp", "dns", "dhcpv4"], optional = true }
+embassy-net = { version = "0.4", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }

@@ -6,8 +6,7 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 
 - [x] [blinky](blinky): Blinks an LED and output logs
 - [x] [embassy_blinky](embassy_blinky): use embassy to blinks an LED and output logs
-- [ ] wifi: connect to wifi
-- [ ] embassy_wifi: use embassy to connect to wifi
+- [x] [embassy_wifi](embassy_wifi): use embassy to connect to wifi
 
 Unlike the examples that come with esp-hal, each example is separate and handles dependencies, so you can just copy an example to get a quick start on your project.
 
