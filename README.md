@@ -5,9 +5,11 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 > 一些使用 [esp-hal](https://github.com/esp-rs/esp-hal) 的例子：
 
 - [x] [blinky](blinky): Blinks an LED and output logs
-- [x] [embassy_blinky](embassy_blinky): use embassy to blinks an LED and output logs
-- [x] [embassy_wifi](embassy_wifi): use embassy to connect to wifi
+- [x] [embassy_blinky](embassy_blinky): Use embassy to blinks an LED and output logs
+- [x] [embassy_wifi](embassy_wifi): Use embassy to connect to wifi
 - [x] [alloc](alloc): How to set heap allocator, use String，Vec，BTreeMap，Box, and use json.
+- [ ] [embedded_hal](embedded_hal): How to use embedded_hal.
+- [ ] [embedded_hal_async](embedded_hal_async): How to use embedded_hal_async.
 
 Unlike the examples that come with esp-hal, each example is separate and handles dependencies, so you can just copy an example to get a quick start on your project.
 
