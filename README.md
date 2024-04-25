@@ -9,7 +9,7 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 - [x] [embassy_wifi](embassy_wifi): Use embassy to connect to wifi
 - [x] [alloc](alloc): How to set heap allocator, use String，Vec，BTreeMap，Box, and use json.
 - [ ] [rhai](rhai): Rhai is an embedded scripting language.
-- [ ] [heapless](heapless): Static friendly data structures that don't require dynamic memory allocation.
+- [x] [heapless](heapless): Static friendly data structures that don't require dynamic memory allocation.
 - [ ] [smartled](smartled): Easily light RGB LEDs using the RMT output channel.
 - [ ] [embedded_hal](embedded_hal): How to use embedded_hal.
 - [ ] [embedded_hal_async](embedded_hal_async): How to use embedded_hal_async.
@@ -25,4 +25,3 @@ You can check the README.md file in each example for more information.
 But, I only have the esp32c3 and esp32c6 development boards at the moment, these examples are only tested the esp32c3 and esp32c6, maybe in the future I'll add more chip models. For other chip models, you may have to make some changes to the Cargo.toml file and the .cargo/config.toml file.
 
 > 但是，目前我只有 esp32c3 和 scp32c6 的开发板，这些示例只在这两个型号上进行了测试，也许未来会添加更多芯片型号。对于其他芯片型号，你可能需要修改 Cargo.toml 文件和 .cargo/config.toml 文件。
-
