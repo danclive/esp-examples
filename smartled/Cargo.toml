@@ -1,7 +1,7 @@
 [package]
-name = "alloc"
+name = "smartled"
 version = "0.0.0"
-description = "alloc"
+description = "smartled"
 readme = "README.md"
 keywords = ["esp-hal", "esp32"]
 license = "MIT"
@@ -13,7 +13,7 @@ default = [
     "esp32c6",
     "jtag",
     "log",
-    "alloc"
+    "smartled"
 ]
 
 log = [
@@ -28,18 +28,18 @@ defmt = [
     "esp-hal/defmt",
     "esp-println/defmt-espflash",
     "esp-backtrace/defmt",
+    "esp-hal-smartled?/defmt"
 ]
 
 jtag = ["esp-println/jtag-serial"]
 uart = ["esp-println/uart"]
 
-esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
-esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
+esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3", "esp-hal-smartled?/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6", "esp-hal-smartled?/esp32c6"]
 
-alloc = [
-    "esp-alloc",
-    "serde/alloc",
-    "serde_json/alloc"
+smartled = [
+    "esp-hal-smartled",
+    "smart-leds",
 ]
 
 [dependencies]
@@ -53,7 +53,5 @@ log = { version = "0.4", optional = true }
 # Time library for embedded targets with ease-of-use and performance first.
 fugit = "0.3"
 
-esp-alloc = { version = "0.3", optional = true }
-
-serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
-serde_json = { version = "1.0", default-features = false, optional = true }
+esp-hal-smartled = { version = "0.10", optional = true}
+smart-leds = { version = "0.4", optional = true}
