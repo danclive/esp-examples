@@ -9,8 +9,8 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 - [x] [embassy_wifi](embassy_wifi): Use embassy to connect to wifi
 - [x] [alloc](alloc): How to set heap allocator, use String，Vec，BTreeMap，Box, and use json.
 - [ ] [rhai](rhai): Rhai is an embedded scripting language.
-- [x] [heapless](heapless): Static friendly data structures that don't require dynamic memory allocation.
-- [ ] [smartled](smartled): Easily light RGB LEDs using the RMT output channel.
+- [ ] [heapless](heapless): Static friendly data structures that don't require dynamic memory allocation.
+- [x] [smartled](smartled): Easily light RGB LEDs using the RMT output channel.
 - [ ] [embedded_hal](embedded_hal): How to use embedded_hal.
 - [ ] [embedded_hal_async](embedded_hal_async): How to use embedded_hal_async.
 
