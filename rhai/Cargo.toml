@@ -1,0 +1,69 @@
+[package]
+name = "rhai-example"
+version = "0.0.0"
+description = "rhai example"
+readme = "README.md"
+keywords = ["esp-hal", "esp32"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77"
+
+[features]
+default = [
+    "esp32c6",
+    "jtag",
+    "log",
+    "alloc",
+    "rhai"
+]
+
+log = [
+    "dep:log",
+    "esp-hal/log",
+    "esp-println/log",
+    "esp-backtrace/println",
+]
+
+defmt = [
+    "dep:defmt",
+    "esp-hal/defmt",
+    "esp-println/defmt-espflash",
+    "esp-backtrace/defmt",
+]
+
+jtag = ["esp-println/jtag-serial"]
+uart = ["esp-println/uart"]
+
+esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
+
+alloc = [
+    "esp-alloc",
+]
+
+rhai = [
+    "dep:rhai",
+    "rhai/f32_float",
+    "rhai/only_i32"
+]
+
+[dependencies]
+esp-hal = { version = "0.17.0" }
+esp-println = { version = "0.9", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.11", features = ["panic-handler", "exception-handler"]  }
+
+defmt = { version = "0.3", optional = true }
+log = { version = "0.4", optional = true }
+
+# Time library for embedded targets with ease-of-use and performance first.
+fugit = "0.3"
+
+esp-alloc = { version = "0.3", optional = true }
+
+rhai = { version = "1.18", default-features = false, features = ["no_std"], optional = true }
+critical-section = "1.1"
+
+[profile.release]
+lto = "fat"         # turn on Link-Time Optimizations
+codegen-units = 1   # trade compile time with maximum optimization
+opt-level = "z"     # optimize for size
