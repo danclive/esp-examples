@@ -9,12 +9,13 @@
 
 use esp_hal::{
     clock::ClockControl,
-    embassy,
-    gpio::{AnyPin, Output, PushPull, IO},
+    gpio::{AnyOutput, Io, Level},
     peripherals::Peripherals,
-    system::SystemExt,
-    timer::TimerGroup,
+    system::SystemControl,
+    timer::timg::TimerGroup,
 };
+
+use esp_hal::{entry, macros::main};
 
 use esp_backtrace as _;
 use esp_println::println;
@@ -22,7 +23,7 @@ use esp_println::println;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 
-#[embassy_executor::main(entry = "esp_hal::entry")]
+#[main]
 async fn main(spawner: Spawner) {
     #[cfg(feature = "log")]
     {
@@ -34,7 +35,7 @@ async fn main(spawner: Spawner) {
     println!("Init!");
 
     let peripherals = Peripherals::take();
-    let system = peripherals.SYSTEM.split();
+    let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
 
     // use esp_println
@@ -51,22 +52,23 @@ async fn main(spawner: Spawner) {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = io.pins.gpio8.into_push_pull_output();
+    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+    let mut led = AnyOutput::new(io.pins.gpio8, Level::Low);
 
     led.set_high();
 
     let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
-    embassy::init(&clocks, timg0);
+    esp_hal_embassy::init(&clocks, timg0);
 
     println!("embassy init!");
 
     spawner.spawn(run()).ok();
-    spawner.spawn(toggle(led.into())).ok();
+    spawner.spawn(toggle(led)).ok();
 
     loop {
         println!("main loop!");
         Timer::after(Duration::from_millis(5_000)).await;
+        esp_hal::riscv::asm::wfi();
     }
 }
 
@@ -79,7 +81,7 @@ async fn run() {
 }
 
 #[embassy_executor::task]
-async fn toggle(mut led: AnyPin<Output<PushPull>>) {
+async fn toggle(mut led: AnyOutput<'static>) {
     loop {
         println!("toggle loop!");
         led.toggle();

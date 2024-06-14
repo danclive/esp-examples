@@ -10,7 +10,12 @@
 extern crate alloc;
 
 use esp_hal::{
-    clock::ClockControl, delay::Delay, entry, gpio::IO, peripherals::Peripherals, system::SystemExt,
+    clock::ClockControl,
+    delay::Delay,
+    entry,
+    gpio::{AnyOutput, Io, Level},
+    peripherals::Peripherals,
+    system::SystemControl,
 };
 
 use esp_backtrace as _;
@@ -32,9 +37,8 @@ fn init_heap() {
 
 use core::cell::RefCell;
 use critical_section::Mutex;
-use esp_hal::gpio::{AnyPin, Output, PushPull};
 
-static LED: Mutex<RefCell<Option<AnyPin<Output<PushPull>>>>> = Mutex::new(RefCell::new(None));
+static LED: Mutex<RefCell<Option<AnyOutput<'static>>>> = Mutex::new(RefCell::new(None));
 
 fn toggle_led() {
     critical_section::with(|cs| {
@@ -70,7 +74,8 @@ fn main() -> ! {
     }
 
     let peripherals = Peripherals::take();
-    let system = peripherals.SYSTEM.split();
+    let system = SystemControl::new(peripherals.SYSTEM);
+
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
 
     // use esp_println
@@ -87,8 +92,8 @@ fn main() -> ! {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = io.pins.gpio8.into_push_pull_output();
+    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+    let mut led = AnyOutput::new(io.pins.gpio8, Level::Low);
 
     led.set_high();
 

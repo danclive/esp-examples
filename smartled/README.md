@@ -34,7 +34,7 @@ smartled = [
 
 [dependencies]
 ...
-esp-hal-smartled = { version = "0.10", optional = true}
+esp-hal-smartled = { version = "0.11", optional = true}
 smart-leds = { version = "0.4", optional = true}
 ```
 

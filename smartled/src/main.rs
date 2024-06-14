@@ -8,8 +8,8 @@
 #![no_main]
 
 use esp_hal::{
-    clock::ClockControl, delay::Delay, entry, gpio::IO, peripherals::Peripherals, rmt::Rmt,
-    system::SystemExt,
+    clock::ClockControl, delay::Delay, entry, gpio::Io, peripherals::Peripherals, rmt::Rmt,
+    system::SystemControl,
 };
 
 use esp_backtrace as _;
@@ -27,7 +27,7 @@ fn main() -> ! {
     }
 
     let peripherals = Peripherals::take();
-    let system = peripherals.SYSTEM.split();
+    let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
 
     // use esp_println
@@ -44,7 +44,7 @@ fn main() -> ! {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
+    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
     let rmt = Rmt::new(peripherals.RMT, 80.MHz(), &clocks, None).unwrap();
 
     use esp_hal_smartled::{smartLedBuffer, SmartLedsAdapter};

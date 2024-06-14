@@ -26,7 +26,7 @@ alloc = [
 
 [dependencies]
 ...
-esp-alloc = { version = "0.3", optional = true }
+esp-alloc = { version = "0.4", optional = true }
 ```
 
 and add it to the `main.rs` file:

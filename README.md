@@ -14,6 +14,7 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 - [ ] [usb_ethernet](usb_ethernet): Ethernet over USB.
 - [ ] [embedded_hal](embedded_hal): How to use embedded_hal.
 - [ ] [embedded_hal_async](embedded_hal_async): How to use embedded_hal_async.
+- [ ] [channel](channel)
 
 Unlike the examples that come with esp-hal, each example is separate and handles dependencies, so you can just copy an example to get a quick start on your project.
 

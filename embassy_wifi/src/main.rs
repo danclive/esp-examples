@@ -9,15 +9,16 @@
 
 use esp_hal::{
     clock::ClockControl,
-    embassy,
-    gpio::{AnyPin, Output, PushPull, IO},
+    gpio::{AnyOutput, Io, Level},
     peripherals::Peripherals,
     riscv::singleton,
     rng::Rng,
-    system::SystemExt,
-    systimer::SystemTimer,
-    timer::TimerGroup,
+    system::SystemControl,
+    timer::systimer::SystemTimer,
+    timer::timg::TimerGroup,
 };
+
+use esp_hal::{entry, macros::main};
 
 use esp_backtrace as _;
 use esp_println::println;
@@ -38,10 +39,10 @@ use embassy_net::{tcp::TcpSocket, Config, Ipv4Address, Stack, StackResources};
 
 // const SSID: &str = env!("SSID");
 // const PASSWORD: &str = env!("PASSWORD");
-const SSID: &str = "HOME";
+const SSID: &str = "HOME_2";
 const PASSWORD: &str = "lalala123456";
 
-#[embassy_executor::main(entry = "esp_hal::entry")]
+#[main]
 async fn main(spawner: Spawner) {
     #[cfg(feature = "log")]
     {
@@ -53,7 +54,7 @@ async fn main(spawner: Spawner) {
     println!("Init!");
 
     let peripherals = Peripherals::take();
-    let system = peripherals.SYSTEM.split();
+    let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::max(system.clock_control).freeze();
 
     // init wifi
@@ -62,7 +63,7 @@ async fn main(spawner: Spawner) {
         EspWifiInitFor::Wifi,
         timer,
         Rng::new(peripherals.RNG),
-        system.radio_clock_control,
+        peripherals.RADIO_CLK,
         &clocks,
     )
     .unwrap();
@@ -98,13 +99,13 @@ async fn main(spawner: Spawner) {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = io.pins.gpio8.into_push_pull_output();
+    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+    let mut led = AnyOutput::new(io.pins.gpio8, Level::Low);
 
     led.set_high();
 
     let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
-    embassy::init(&clocks, timg0);
+    esp_hal_embassy::init(&clocks, timg0);
 
     println!("embassy init!");
 
@@ -130,7 +131,7 @@ async fn run() {
 }
 
 #[embassy_executor::task]
-async fn toggle(mut led: AnyPin<Output<PushPull>>) {
+async fn toggle(mut led: AnyOutput<'static>) {
     loop {
         println!("toggle loop!");
         led.toggle();

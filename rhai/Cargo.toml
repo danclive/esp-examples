@@ -48,9 +48,9 @@ rhai = [
 ]
 
 [dependencies]
-esp-hal = { version = "0.17.0" }
-esp-println = { version = "0.9", default-features = false, features = ["critical-section", "colors"] }
-esp-backtrace = { version = "0.11", features = ["panic-handler", "exception-handler"]  }
+esp-hal = { version = "0.18.0" }
+esp-println = { version = "0.9.1", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.12.0", features = ["panic-handler", "exception-handler"]  }
 
 defmt = { version = "0.3", optional = true }
 log = { version = "0.4", optional = true }
@@ -58,7 +58,7 @@ log = { version = "0.4", optional = true }
 # Time library for embedded targets with ease-of-use and performance first.
 fugit = "0.3"
 
-esp-alloc = { version = "0.3", optional = true }
+esp-alloc = { version = "0.4", optional = true }
 
 rhai = { version = "1.18", default-features = false, features = ["no_std"], optional = true }
 critical-section = "1.1"
