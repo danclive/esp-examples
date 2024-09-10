@@ -31,7 +31,7 @@ defmt = [
 ]
 
 embassy = [
-    "esp-hal-embassy/time-timg0",
+    "esp-hal-embassy",
     "embassy-executor",
     "embassy-time",
     "embassy-executor/task-arena-size-20480"
@@ -41,8 +41,8 @@ esp32c3 = [..., "esp-hal-embassy?/esp32c3"]
 esp32c6 = [..., "esp-hal-embassy?/esp32c6"]
 
 [dependencies]
-esp-hal-embassy = { version = "0.1", features = ["time-timg0", "integrated-timers"], optional = true  }
-embassy-executor = { version = "0.5", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
+esp-hal-embassy = { version = "0.3", features = ["integrated-timers"], optional = true  }
+embassy-executor = { version = "0.6", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
 embassy-time = { version = "0.3", optional = true }
 ```
 

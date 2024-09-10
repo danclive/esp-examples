@@ -34,7 +34,7 @@ esp32c3 = [..., "esp-wifi?/esp32c3"]
 esp32c6 = [..., "esp-wifi?/esp32c6"]
 
 [dependencies]
-esp-wifi  = { version = "0.5", default-features = false, features = [
+esp-wifi  = { version = "0.9", default-features = false, features = [
     "wifi", "ipv4", "tcp", "udp", "icmp", "igmp", "dns", "dhcpv4"], optional = true }
 embassy-net = { version = "0.4", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
 ```

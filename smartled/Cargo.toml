@@ -6,7 +6,7 @@ readme = "README.md"
 keywords = ["esp-hal", "esp32"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.77"
+rust-version = "1.81"
 
 [features]
 default = [
@@ -43,9 +43,9 @@ smartled = [
 ]
 
 [dependencies]
-esp-hal = { version = "0.18.0" }
-esp-println = { version = "0.9.1", default-features = false, features = ["critical-section", "colors"] }
-esp-backtrace = { version = "0.12.0", features = ["panic-handler", "exception-handler"]  }
+esp-hal = { version = "0.20.1" }
+esp-println = { version = "0.11.0", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.14.1", features = ["panic-handler", "exception-handler"]  }
 
 defmt = { version = "0.3", optional = true }
 log = { version = "0.4", optional = true }
@@ -53,5 +53,5 @@ log = { version = "0.4", optional = true }
 # Time library for embedded targets with ease-of-use and performance first.
 fugit = "0.3"
 
-esp-hal-smartled = { version = "0.11", optional = true}
+esp-hal-smartled = { version = "0.13", optional = true}
 smart-leds = { version = "0.4", optional = true}

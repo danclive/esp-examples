@@ -45,7 +45,7 @@ fn main() -> ! {
 
     // Set GPIO0 as an output, and set its state high initially.
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let rmt = Rmt::new(peripherals.RMT, 80.MHz(), &clocks, None).unwrap();
+    let rmt = Rmt::new(peripherals.RMT, 80.MHz(), &clocks).unwrap();
 
     use esp_hal_smartled::{smartLedBuffer, SmartLedsAdapter};
     // see https://docs.rs/smart-leds/latest/smart_leds/

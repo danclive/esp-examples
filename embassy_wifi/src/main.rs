@@ -14,11 +14,10 @@ use esp_hal::{
     riscv::singleton,
     rng::Rng,
     system::SystemControl,
-    timer::systimer::SystemTimer,
     timer::timg::TimerGroup,
 };
 
-use esp_hal::{entry, macros::main};
+use esp_hal::macros::main;
 
 use esp_backtrace as _;
 use esp_println::println;
@@ -58,10 +57,10 @@ async fn main(spawner: Spawner) {
     let clocks = ClockControl::max(system.clock_control).freeze();
 
     // init wifi
-    let timer = SystemTimer::new(peripherals.SYSTIMER).alarm0;
+    let timg0 = TimerGroup::new(peripherals.TIMG0, &clocks);
     let init = initialize(
         EspWifiInitFor::Wifi,
-        timer,
+        timg0.timer0,
         Rng::new(peripherals.RNG),
         peripherals.RADIO_CLK,
         &clocks,
@@ -104,8 +103,9 @@ async fn main(spawner: Spawner) {
 
     led.set_high();
 
-    let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
-    esp_hal_embassy::init(&clocks, timg0);
+    use esp_hal::timer::systimer::{SystemTimer, Target};
+    let systimer = SystemTimer::new(peripherals.SYSTIMER).split::<Target>();
+    esp_hal_embassy::init(&clocks, systimer.alarm0);
 
     println!("embassy init!");
 

@@ -26,7 +26,7 @@ rhai = [
 ]
 
 [dependencies]
-rhai = { version = "1.18", default-features = false, features = ["no_std"], optional = true }
+rhai = { version = "1.19", default-features = false, features = ["no_std"], optional = true }
 
 [profile.release]
 lto = "fat"         # turn on Link-Time Optimizations

@@ -12,10 +12,9 @@ use esp_hal::{
     gpio::{AnyOutput, Io, Level},
     peripherals::Peripherals,
     system::SystemControl,
-    timer::timg::TimerGroup,
 };
 
-use esp_hal::{entry, macros::main};
+use esp_hal::macros::main;
 
 use esp_backtrace as _;
 use esp_println::println;
@@ -57,8 +56,9 @@ async fn main(spawner: Spawner) {
 
     led.set_high();
 
-    let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
-    esp_hal_embassy::init(&clocks, timg0);
+    use esp_hal::timer::systimer::{SystemTimer, Target};
+    let systimer = SystemTimer::new(peripherals.SYSTIMER).split::<Target>();
+    esp_hal_embassy::init(&clocks, systimer.alarm0);
 
     println!("embassy init!");
 
