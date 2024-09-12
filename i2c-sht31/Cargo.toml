@@ -1,0 +1,50 @@
+[package]
+name = "i2c-sht31"
+version = "0.0.0"
+description = "i2c-sht31"
+readme = "README.md"
+keywords = ["esp-hal", "esp32"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.81"
+
+[features]
+default = [
+    "esp32c6",
+    "jtag",
+    "log",
+]
+
+log = [
+    "dep:log",
+    "esp-hal/log",
+    "esp-println/log",
+    "esp-backtrace/println",
+]
+
+defmt = [
+    "dep:defmt",
+    "esp-hal/defmt",
+    "esp-println/defmt-espflash",
+    "esp-backtrace/defmt",
+]
+
+jtag = ["esp-println/jtag-serial"]
+uart = ["esp-println/uart"]
+
+esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
+
+[dependencies]
+esp-hal = { version = "0.20.1" }
+esp-println = { version = "0.11.0", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.14.1", features = ["panic-handler", "exception-handler"]  }
+
+defmt = { version = "0.3", optional = true }
+log = { version = "0.4", optional = true }
+
+# Time library for embedded targets with ease-of-use and performance first.
+fugit = "0.3"
+
+embedded-hal = "1.0"
+bitflags = "2.6"

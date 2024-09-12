@@ -1,4 +1,4 @@
-# Smartled
+# I2C SHT31
 
 This example shows how to use the RMT to light an RGB LED, such as the WS2812, assuming you already know about RGB LEDs such as the WS2812, which is not covered in this example.
 

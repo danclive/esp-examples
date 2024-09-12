@@ -10,6 +10,7 @@ Some examples of [esp-hal](https://github.com/esp-rs/esp-hal).
 - [x] [alloc](alloc): How to set heap allocator, use String，Vec，BTreeMap，Box, and use json.
 - [x] [rhai](rhai): Rhai is an embedded scripting language.
 - [x] [smartled](smartled): Easily light RGB LEDs using the RMT output channel.
+- [x] [i2c-sht31](i2c-sht31): Connecting the SHT31 temperature and humidity sensor using I2C interface.
 
 Unlike the examples that come with esp-hal, each example is separate and handles dependencies, so you can just copy an example to get a quick start on your project.
 
