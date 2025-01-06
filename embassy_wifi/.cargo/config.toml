@@ -7,12 +7,10 @@ rustflags = [
   "-C", "force-frame-pointers",
   # with defmt
   # "-C", "link-arg=-Tdefmt.x",
-  # with wifi
-  "-C", "link-arg=-Trom_functions.x",
 ]
 
 [env]
-ESP_LOGLEVEL="INFO"
+ESP_LOG="INFO"
 
 [build]
 # esp32c3

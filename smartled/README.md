@@ -34,7 +34,7 @@ smartled = [
 
 [dependencies]
 ...
-esp-hal-smartled = { version = "0.13", optional = true}
+esp-hal-smartled = { version = "0.14", optional = true}
 smart-leds = { version = "0.4", optional = true}
 ```
 
@@ -47,16 +47,14 @@ Then add the following code to the `main.rs` file:
 > 然后在 `main.rs` 文件中添加以下代码：
 
 ```rust
-// Set GPIO0 as an output, and set its state high initially.
-let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
-let rmt = Rmt::new(peripherals.RMT, 80.MHz(), &clocks, None).unwrap();
+let rmt = Rmt::new(peripherals.RMT, 80.MHz()).unwrap();
 
 use esp_hal_smartled::{smartLedBuffer, SmartLedsAdapter};
 // see https://docs.rs/smart-leds/latest/smart_leds/
 use smart_leds::{colors::*, SmartLedsWrite};
 
 let rmt_buffer = smartLedBuffer!(1); // Number of LEDs is 1
-let mut led = SmartLedsAdapter::new(rmt.channel0, io.pins.gpio8, rmt_buffer, &clocks);
+let mut led = SmartLedsAdapter::new(rmt.channel0, peripherals.GPIO8, rmt_buffer);
 
 let colors = [
     WHITE, SILVER, GRAY, BLACK, RED, MAROON, YELLOW, OLIVE, LIME, GREEN, AQUA, TEAL, BLUE,
@@ -65,7 +63,7 @@ let colors = [
 
 // Initialize the Delay peripheral, and use it to toggle the LED state in a
 // loop.
-let delay = Delay::new(&clocks);
+let delay = Delay::new();
 
 loop {
     println!("loop!");

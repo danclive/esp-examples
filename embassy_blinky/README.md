@@ -41,9 +41,9 @@ esp32c3 = [..., "esp-hal-embassy?/esp32c3"]
 esp32c6 = [..., "esp-hal-embassy?/esp32c6"]
 
 [dependencies]
-esp-hal-embassy = { version = "0.3", features = ["integrated-timers"], optional = true  }
+esp-hal-embassy = { version = "0.5", optional = true  }
 embassy-executor = { version = "0.6", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
-embassy-time = { version = "0.3", optional = true }
+embassy-time = { version = "0.3", features = ["generic-queue-8"], optional = true }
 ```
 
 After initializing embassy, you can use multitasking, which is very different from traditional embedded development.
@@ -54,13 +54,13 @@ After initializing embassy, you can use multitasking, which is very different fr
 #[embassy_executor::main(entry = "esp_hal::entry")]
 async fn main(spawner: Spawner) {
     ...
-    let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
-    embassy::init(&clocks, timg0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_hal_embassy::init(timg0.timer0);
 
     println!("embassy init!");
 
     spawner.spawn(run()).ok();
-    spawner.spawn(toggle(led.into())).ok();
+    spawner.spawn(toggle(led)).ok();
 
     loop {
         println!("main loop!");
@@ -78,7 +78,7 @@ async fn run() {
 }
 
 #[embassy_executor::task]
-async fn toggle(mut led: AnyPin<Output<PushPull>>) {
+async fn toggle(mut led: Output<'static>) {
     loop {
         println!("toggle loop!");
         led.toggle();

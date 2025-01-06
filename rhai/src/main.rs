@@ -9,36 +9,36 @@
 
 extern crate alloc;
 
-use esp_hal::{
-    clock::ClockControl,
-    delay::Delay,
-    entry,
-    gpio::{AnyOutput, Io, Level},
-    peripherals::Peripherals,
-    system::SystemControl,
-};
+use core::ptr::addr_of_mut;
 
 use esp_backtrace as _;
+use esp_hal::{
+    clock::CpuClock,
+    delay::Delay,
+    entry,
+    gpio::{Level, Output},
+};
 use esp_println::println;
 
 use fugit::ExtU64;
-
-#[global_allocator]
-static ALLOCATOR: esp_alloc::EspHeap = esp_alloc::EspHeap::empty();
 
 fn init_heap() {
     const HEAP_SIZE: usize = 128 * 1024;
     static mut HEAP: core::mem::MaybeUninit<[u8; HEAP_SIZE]> = core::mem::MaybeUninit::uninit();
 
     unsafe {
-        ALLOCATOR.init(HEAP.as_mut_ptr() as *mut u8, HEAP_SIZE);
+        esp_alloc::HEAP.add_region(esp_alloc::HeapRegion::new(
+            addr_of_mut!(HEAP) as *mut u8,
+            HEAP_SIZE,
+            esp_alloc::MemoryCapability::Internal.into(),
+        ));
     }
 }
 
 use core::cell::RefCell;
 use critical_section::Mutex;
 
-static LED: Mutex<RefCell<Option<AnyOutput<'static>>>> = Mutex::new(RefCell::new(None));
+static LED: Mutex<RefCell<Option<Output<'static>>>> = Mutex::new(RefCell::new(None));
 
 fn toggle_led() {
     critical_section::with(|cs| {
@@ -73,10 +73,12 @@ fn main() -> ! {
         esp_println::logger::init_logger(log::LevelFilter::Info);
     }
 
-    let peripherals = Peripherals::take();
-    let system = SystemControl::new(peripherals.SYSTEM);
-
-    let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        // Configure the CPU to run at the maximum frequency.
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     // use esp_println
     println!("hello world!");
@@ -92,18 +94,17 @@ fn main() -> ! {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = AnyOutput::new(io.pins.gpio8, Level::Low);
+    let mut led = Output::new(peripherals.GPIO8, Level::High);
 
     led.set_high();
 
     critical_section::with(|cs| {
-        LED.borrow_ref_mut(cs).replace(led.into());
+        LED.borrow_ref_mut(cs).replace(led);
     });
 
     // Initialize the Delay peripheral, and use it to toggle the LED state in a
     // loop.
-    let delay = Delay::new(&clocks);
+    let delay = Delay::new();
 
     // alloc
     // see https://doc.rust-lang.org/stable/alloc/index.html

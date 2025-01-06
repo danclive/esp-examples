@@ -26,7 +26,7 @@ alloc = [
 
 [dependencies]
 ...
-esp-alloc = { version = "0.4", optional = true }
+esp-alloc = { version = "0.5", optional = true }
 ```
 
 and add it to the `main.rs` file:
@@ -36,15 +36,16 @@ and add it to the `main.rs` file:
 ```rust
 extern crate alloc;
 
-#[global_allocator]
-static ALLOCATOR: esp_alloc::EspHeap = esp_alloc::EspHeap::empty();
-
 fn init_heap() {
     const HEAP_SIZE: usize = 64 * 1024;
     static mut HEAP: core::mem::MaybeUninit<[u8; HEAP_SIZE]> = core::mem::MaybeUninit::uninit();
 
     unsafe {
-        ALLOCATOR.init(HEAP.as_mut_ptr() as *mut u8, HEAP_SIZE);
+        esp_alloc::HEAP.add_region(esp_alloc::HeapRegion::new(
+            addr_of_mut!(HEAP) as *mut u8,
+            HEAP_SIZE,
+            esp_alloc::MemoryCapability::Internal.into(),
+        ));
     }
 }
 

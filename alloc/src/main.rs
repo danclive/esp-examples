@@ -9,13 +9,13 @@
 
 extern crate alloc;
 
+use core::ptr::addr_of_mut;
+
 use esp_hal::{
-    clock::ClockControl,
+    clock::CpuClock,
     delay::Delay,
     entry,
-    gpio::{Io, Level, Output},
-    peripherals::Peripherals,
-    system::SystemControl,
+    gpio::{Level, Output},
 };
 
 use esp_backtrace as _;
@@ -23,15 +23,16 @@ use esp_println::println;
 
 use fugit::ExtU64;
 
-#[global_allocator]
-static ALLOCATOR: esp_alloc::EspHeap = esp_alloc::EspHeap::empty();
-
 fn init_heap() {
     const HEAP_SIZE: usize = 64 * 1024;
     static mut HEAP: core::mem::MaybeUninit<[u8; HEAP_SIZE]> = core::mem::MaybeUninit::uninit();
 
     unsafe {
-        ALLOCATOR.init(HEAP.as_mut_ptr() as *mut u8, HEAP_SIZE);
+        esp_alloc::HEAP.add_region(esp_alloc::HeapRegion::new(
+            addr_of_mut!(HEAP) as *mut u8,
+            HEAP_SIZE,
+            esp_alloc::MemoryCapability::Internal.into(),
+        ));
     }
 }
 
@@ -46,10 +47,12 @@ fn main() -> ! {
         esp_println::logger::init_logger(log::LevelFilter::Info);
     }
 
-    let peripherals = Peripherals::take();
-    let system = SystemControl::new(peripherals.SYSTEM);
-
-    let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        // Configure the CPU to run at the maximum frequency.
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     // use esp_println
     println!("hello world!");
@@ -65,12 +68,11 @@ fn main() -> ! {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = Output::new(io.pins.gpio8, Level::Low);
+    let mut led = Output::new(peripherals.GPIO8, Level::High);
 
     // Initialize the Delay peripheral, and use it to toggle the LED state in a
     // loop.
-    let delay = Delay::new(&clocks);
+    let delay = Delay::new();
 
     // alloc
     // see https://doc.rust-lang.org/stable/alloc/index.html

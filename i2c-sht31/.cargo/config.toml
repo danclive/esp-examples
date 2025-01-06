@@ -10,7 +10,7 @@ rustflags = [
 ]
 
 [env]
-ESP_LOGLEVEL="INFO"
+ESP_LOG="INFO"
 
 [build]
 # esp32c3

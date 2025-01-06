@@ -34,27 +34,10 @@ esp32c3 = [..., "esp-wifi?/esp32c3"]
 esp32c6 = [..., "esp-wifi?/esp32c6"]
 
 [dependencies]
-esp-wifi  = { version = "0.9", default-features = false, features = [
-    "wifi", "ipv4", "tcp", "udp", "icmp", "igmp", "dns", "dhcpv4"], optional = true }
-embassy-net = { version = "0.4", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
-```
+esp-wifi  = { version = "0.11.0", default-features = false, features = [
+    "esp-alloc", "wifi", "smoltcp", "utils"], optional = true }
+embassy-net = { version = "0.4.0", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
 
-And add to the `.cargo/config.toml` file:
-
-> 并在 `.cargo/config.toml` 文件中添加：
-
-```toml
-rustflags = [
-  ...
-  # with wifi
-  "-C", "link-arg=-Trom_functions.x",
-]
-```
-
-One thing to note is that after turning on WIFI, you have to let the chip run at the maximum clock speed, otherwise you will be told that the clock is misconfigured when initializing WIFI. I'm not sure if this is a bug or not.
-
-> 要注意的是，开启 WIFI 后，要让芯片运行在最大时钟速度，否则初始化 WIFI 时会被告知时钟配置错误。我不知道这是否是 BUG。
-
-```rust
-let clocks = ClockControl::max(system.clock_control).freeze();
+static_cell = "2.1.0"
+esp-alloc = { version = "0.5" }
 ```

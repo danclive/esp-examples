@@ -7,13 +7,14 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use core::ptr::addr_of_mut;
+
 use esp_hal::{
-    clock::ClockControl,
-    gpio::{AnyOutput, Io, Level},
-    peripherals::Peripherals,
-    riscv::singleton,
+    clock::CpuClock,
+    gpio::{Level, Output},
     rng::Rng,
-    system::SystemControl,
     timer::timg::TimerGroup,
 };
 
@@ -26,12 +27,12 @@ use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 
 use esp_wifi::{
-    initialize,
+    init,
     wifi::{
         ClientConfiguration, Configuration, WifiController, WifiDevice, WifiEvent, WifiStaDevice,
         WifiState,
     },
-    EspWifiInitFor,
+    EspWifiController,
 };
 
 use embassy_net::{tcp::TcpSocket, Config, Ipv4Address, Stack, StackResources};
@@ -41,8 +42,32 @@ use embassy_net::{tcp::TcpSocket, Config, Ipv4Address, Stack, StackResources};
 const SSID: &str = "HOME_2";
 const PASSWORD: &str = "lalala123456";
 
+macro_rules! mk_static {
+    ($t:ty,$val:expr) => {{
+        static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
+        #[deny(unused_attributes)]
+        let x = STATIC_CELL.uninit().write(($val));
+        x
+    }};
+}
+
+fn init_heap() {
+    const HEAP_SIZE: usize = 64 * 1024;
+    static mut HEAP: core::mem::MaybeUninit<[u8; HEAP_SIZE]> = core::mem::MaybeUninit::uninit();
+
+    unsafe {
+        esp_alloc::HEAP.add_region(esp_alloc::HeapRegion::new(
+            addr_of_mut!(HEAP) as *mut u8,
+            HEAP_SIZE,
+            esp_alloc::MemoryCapability::Internal.into(),
+        ));
+    }
+}
+
 #[main]
 async fn main(spawner: Spawner) {
+    init_heap();
+
     #[cfg(feature = "log")]
     {
         // The default log level can be specified here.
@@ -52,37 +77,41 @@ async fn main(spawner: Spawner) {
 
     println!("Init!");
 
-    let peripherals = Peripherals::take();
-    let system = SystemControl::new(peripherals.SYSTEM);
-    let clocks = ClockControl::max(system.clock_control).freeze();
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        // Configure the CPU to run at the maximum frequency.
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     // init wifi
-    let timg0 = TimerGroup::new(peripherals.TIMG0, &clocks);
-    let init = initialize(
-        EspWifiInitFor::Wifi,
-        timg0.timer0,
-        Rng::new(peripherals.RNG),
-        peripherals.RADIO_CLK,
-        &clocks,
-    )
-    .unwrap();
+    let timer1 = TimerGroup::new(peripherals.TIMG1);
+    let rng = Rng::new(peripherals.RNG);
+
+    let init = &*mk_static!(
+        EspWifiController<'static>,
+        init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()
+    );
+    // let init = &*singleton!(:EspWifiController<'static> = init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()).unwrap();
 
     // set wifi mode
     let wifi = peripherals.WIFI;
     let (wifi_interface, controller) =
-        esp_wifi::wifi::new_with_mode(&init, wifi, WifiStaDevice).unwrap();
+        esp_wifi::wifi::new_with_mode(init, wifi, WifiStaDevice).unwrap();
 
     let config = Config::dhcpv4(Default::default());
 
     let seed = 1234; // very random, very secure seed
 
-    let stack = &*singleton!(:Stack<WifiDevice<'static, WifiStaDevice>> = Stack::new(
-        wifi_interface,
-        config,
-        singleton!(:StackResources<8> = StackResources::new()).unwrap(),
-        seed
-    ))
-    .unwrap();
+    let stack = mk_static!(
+        Stack<WifiDevice<'static, WifiStaDevice>>,
+        Stack::new(
+            wifi_interface,
+            config,
+            mk_static!(StackResources<8>, StackResources::<8>::new()),
+            seed
+        )
+    );
 
     // use esp_println
     println!("hello world!");
@@ -98,19 +127,15 @@ async fn main(spawner: Spawner) {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = AnyOutput::new(io.pins.gpio8, Level::Low);
+    let led = Output::new(peripherals.GPIO8, Level::High);
 
-    led.set_high();
-
-    use esp_hal::timer::systimer::{SystemTimer, Target};
-    let systimer = SystemTimer::new(peripherals.SYSTIMER).split::<Target>();
-    esp_hal_embassy::init(&clocks, systimer.alarm0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_hal_embassy::init(timg0.timer0);
 
     println!("embassy init!");
 
     spawner.spawn(run()).ok();
-    spawner.spawn(toggle(led.into())).ok();
+    spawner.spawn(toggle(led)).ok();
 
     spawner.spawn(connection(controller)).ok();
     spawner.spawn(net_task(stack)).ok();
@@ -131,7 +156,7 @@ async fn run() {
 }
 
 #[embassy_executor::task]
-async fn toggle(mut led: AnyOutput<'static>) {
+async fn toggle(mut led: Output<'static>) {
     loop {
         println!("toggle loop!");
         led.toggle();
@@ -144,15 +169,12 @@ async fn toggle(mut led: AnyOutput<'static>) {
 #[embassy_executor::task]
 async fn connection(mut controller: WifiController<'static>) {
     println!("start connection task");
-    println!("Device capabilities: {:?}", controller.get_capabilities());
+    println!("Device capabilities: {:?}", controller.capabilities());
     loop {
-        match esp_wifi::wifi::get_wifi_state() {
-            WifiState::StaConnected => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::StaDisconnected).await;
-                Timer::after(Duration::from_millis(5000)).await
-            }
-            _ => {}
+        if esp_wifi::wifi::wifi_state() == WifiState::StaConnected {
+            // wait until we're no longer connected
+            controller.wait_for_event(WifiEvent::StaDisconnected).await;
+            Timer::after(Duration::from_millis(5000)).await
         }
         if !matches!(controller.is_started(), Ok(true)) {
             let client_config = Configuration::Client(ClientConfiguration {
@@ -162,12 +184,12 @@ async fn connection(mut controller: WifiController<'static>) {
             });
             controller.set_configuration(&client_config).unwrap();
             println!("Starting wifi");
-            controller.start().await.unwrap();
+            controller.start_async().await.unwrap();
             println!("Wifi started!");
         }
         println!("About to connect...");
 
-        match controller.connect().await {
+        match controller.connect_async().await {
             Ok(_) => println!("Wifi connected!"),
             Err(e) => {
                 println!("Failed to connect to wifi: {e:?}");

@@ -7,10 +7,7 @@
 #![no_std]
 #![no_main]
 
-use esp_hal::{
-    clock::ClockControl, delay::Delay, entry, gpio::Io, peripherals::Peripherals, rmt::Rmt,
-    system::SystemControl,
-};
+use esp_hal::{clock::CpuClock, delay::Delay, entry, rmt::Rmt};
 
 use esp_backtrace as _;
 use esp_println::println;
@@ -26,9 +23,12 @@ fn main() -> ! {
         esp_println::logger::init_logger(log::LevelFilter::Info);
     }
 
-    let peripherals = Peripherals::take();
-    let system = SystemControl::new(peripherals.SYSTEM);
-    let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        // Configure the CPU to run at the maximum frequency.
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     // use esp_println
     println!("hello world!");
@@ -43,16 +43,14 @@ fn main() -> ! {
         log::trace!("this is trace message");
     }
 
-    // Set GPIO0 as an output, and set its state high initially.
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let rmt = Rmt::new(peripherals.RMT, 80.MHz(), &clocks).unwrap();
+    let rmt = Rmt::new(peripherals.RMT, 80.MHz()).unwrap();
 
     use esp_hal_smartled::{smartLedBuffer, SmartLedsAdapter};
     // see https://docs.rs/smart-leds/latest/smart_leds/
     use smart_leds::{colors::*, SmartLedsWrite};
 
     let rmt_buffer = smartLedBuffer!(1);
-    let mut led = SmartLedsAdapter::new(rmt.channel0, io.pins.gpio8, rmt_buffer, &clocks);
+    let mut led = SmartLedsAdapter::new(rmt.channel0, peripherals.GPIO8, rmt_buffer);
 
     let colors = [
         WHITE, SILVER, GRAY, BLACK, RED, MAROON, YELLOW, OLIVE, LIME, GREEN, AQUA, TEAL, BLUE,
@@ -61,7 +59,7 @@ fn main() -> ! {
 
     // Initialize the Delay peripheral, and use it to toggle the LED state in a
     // loop.
-    let delay = Delay::new(&clocks);
+    let delay = Delay::new();
 
     loop {
         println!("loop!");

@@ -8,10 +8,9 @@
 #![no_main]
 
 use esp_hal::{
-    clock::ClockControl,
-    gpio::{AnyOutput, Io, Level},
-    peripherals::Peripherals,
-    system::SystemControl,
+    clock::CpuClock,
+    gpio::{Level, Output},
+    timer::timg::TimerGroup,
 };
 
 use esp_hal::macros::main;
@@ -33,9 +32,12 @@ async fn main(spawner: Spawner) {
 
     println!("Init!");
 
-    let peripherals = Peripherals::take();
-    let system = SystemControl::new(peripherals.SYSTEM);
-    let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        // Configure the CPU to run at the maximum frequency.
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     // use esp_println
     println!("hello world!");
@@ -51,14 +53,10 @@ async fn main(spawner: Spawner) {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = AnyOutput::new(io.pins.gpio8, Level::Low);
+    let led = Output::new(peripherals.GPIO8, Level::High);
 
-    led.set_high();
-
-    use esp_hal::timer::systimer::{SystemTimer, Target};
-    let systimer = SystemTimer::new(peripherals.SYSTIMER).split::<Target>();
-    esp_hal_embassy::init(&clocks, systimer.alarm0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    esp_hal_embassy::init(timg0.timer0);
 
     println!("embassy init!");
 
@@ -81,7 +79,7 @@ async fn run() {
 }
 
 #[embassy_executor::task]
-async fn toggle(mut led: AnyOutput<'static>) {
+async fn toggle(mut led: Output<'static>) {
     loop {
         println!("toggle loop!");
         led.toggle();

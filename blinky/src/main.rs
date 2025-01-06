@@ -8,12 +8,10 @@
 #![no_main]
 
 use esp_hal::{
-    clock::ClockControl,
+    clock::CpuClock,
     delay::Delay,
     entry,
-    gpio::{Io, Level, Output},
-    peripherals::Peripherals,
-    system::SystemControl,
+    gpio::{Level, Output},
 };
 
 use esp_backtrace as _;
@@ -30,9 +28,12 @@ fn main() -> ! {
         esp_println::logger::init_logger(log::LevelFilter::Info);
     }
 
-    let peripherals = Peripherals::take();
-    let system = SystemControl::new(peripherals.SYSTEM);
-    let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    let peripherals = esp_hal::init({
+        let mut config = esp_hal::Config::default();
+        // Configure the CPU to run at the maximum frequency.
+        config.cpu_clock = CpuClock::max();
+        config
+    });
 
     // use esp_println
     println!("hello world!");
@@ -48,14 +49,11 @@ fn main() -> ! {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-    let mut led = Output::new(io.pins.gpio8, Level::Low);
-
-    led.set_high();
+    let mut led = Output::new(peripherals.GPIO8, Level::High);
 
     // Initialize the Delay peripheral, and use it to toggle the LED state in a
     // loop.
-    let delay = Delay::new(&clocks);
+    let delay = Delay::new();
 
     loop {
         println!("loop!");
