@@ -10,9 +10,9 @@
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
-    entry,
     gpio::{Level, Output},
-    i2c::master::{Config, I2c},
+    i2c::master::{BusTimeout, Config, I2c},
+    main,
 };
 
 use esp_backtrace as _;
@@ -24,7 +24,7 @@ use sht3x::{Address, Sht3x};
 
 pub mod sht3x;
 
-#[entry]
+#[main]
 fn main() -> ! {
     #[cfg(feature = "log")]
     {
@@ -62,11 +62,11 @@ fn main() -> ! {
 
     let mut i2c = I2c::new(
         peripherals.I2C0,
-        Config {
-            frequency: 100.kHz(),
-            timeout: None,
-        },
+        Config::default()
+            .with_frequency(100.kHz())
+            .with_timeout(BusTimeout::Maximum),
     )
+    .unwrap()
     .with_sda(peripherals.GPIO4)
     .with_scl(peripherals.GPIO5);
 

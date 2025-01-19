@@ -41,9 +41,9 @@ esp32c3 = [..., "esp-hal-embassy?/esp32c3"]
 esp32c6 = [..., "esp-hal-embassy?/esp32c6"]
 
 [dependencies]
-esp-hal-embassy = { version = "0.5", optional = true  }
-embassy-executor = { version = "0.6", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
-embassy-time = { version = "0.3", features = ["generic-queue-8"], optional = true }
+esp-hal-embassy = { version = "0.6", optional = true  }
+embassy-executor = { version = "0.7", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
+embassy-time = { version = "0.4", features = ["generic-queue-8"], optional = true }
 ```
 
 After initializing embassy, you can use multitasking, which is very different from traditional embedded development.

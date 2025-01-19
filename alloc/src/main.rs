@@ -14,8 +14,8 @@ use core::ptr::addr_of_mut;
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
-    entry,
     gpio::{Level, Output},
+    main,
 };
 
 use esp_backtrace as _;
@@ -36,7 +36,7 @@ fn init_heap() {
     }
 }
 
-#[entry]
+#[main]
 fn main() -> ! {
     init_heap();
 

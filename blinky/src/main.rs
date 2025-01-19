@@ -10,8 +10,8 @@
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
-    entry,
     gpio::{Level, Output},
+    main,
 };
 
 use esp_backtrace as _;
@@ -19,7 +19,7 @@ use esp_println::println;
 
 use fugit::ExtU64;
 
-#[entry]
+#[main]
 fn main() -> ! {
     #[cfg(feature = "log")]
     {

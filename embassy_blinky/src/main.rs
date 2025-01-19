@@ -13,15 +13,13 @@ use esp_hal::{
     timer::timg::TimerGroup,
 };
 
-use esp_hal::macros::main;
-
 use esp_backtrace as _;
 use esp_println::println;
 
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 
-#[main]
+#[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
     #[cfg(feature = "log")]
     {

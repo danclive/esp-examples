@@ -15,8 +15,8 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
-    entry,
     gpio::{Level, Output},
+    main,
 };
 use esp_println::println;
 
@@ -62,7 +62,7 @@ fn get_any_value() -> rhai::Dynamic {
     42_i32.into() // standard types can use '.into()'
 }
 
-#[entry]
+#[main]
 fn main() -> ! {
     init_heap();
 

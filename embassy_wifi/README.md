@@ -34,10 +34,10 @@ esp32c3 = [..., "esp-wifi?/esp32c3"]
 esp32c6 = [..., "esp-wifi?/esp32c6"]
 
 [dependencies]
-esp-wifi  = { version = "0.11.0", default-features = false, features = [
+esp-wifi  = { version = "0.12.0", default-features = false, features = [
     "esp-alloc", "wifi", "smoltcp", "utils"], optional = true }
-embassy-net = { version = "0.4.0", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
+embassy-net = { version = "0.6.0", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
 
 static_cell = "2.1.0"
-esp-alloc = { version = "0.5" }
+esp-alloc = { version = "0.6" }
 ```

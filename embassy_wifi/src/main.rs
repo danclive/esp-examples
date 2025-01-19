@@ -18,8 +18,6 @@ use esp_hal::{
     timer::timg::TimerGroup,
 };
 
-use esp_hal::macros::main;
-
 use esp_backtrace as _;
 use esp_println::println;
 
@@ -35,7 +33,7 @@ use esp_wifi::{
     EspWifiController,
 };
 
-use embassy_net::{tcp::TcpSocket, Config, Ipv4Address, Stack, StackResources};
+use embassy_net::{tcp::TcpSocket, Config, Ipv4Address, Runner, Stack, StackResources};
 
 // const SSID: &str = env!("SSID");
 // const PASSWORD: &str = env!("PASSWORD");
@@ -64,7 +62,7 @@ fn init_heap() {
     }
 }
 
-#[main]
+#[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
     init_heap();
 
@@ -103,14 +101,12 @@ async fn main(spawner: Spawner) {
 
     let seed = 1234; // very random, very secure seed
 
-    let stack = mk_static!(
-        Stack<WifiDevice<'static, WifiStaDevice>>,
-        Stack::new(
-            wifi_interface,
-            config,
-            mk_static!(StackResources<8>, StackResources::<8>::new()),
-            seed
-        )
+    // Init network stack
+    let (stack, runner) = embassy_net::new(
+        wifi_interface,
+        config,
+        mk_static!(StackResources<8>, StackResources::<8>::new()),
+        seed,
     );
 
     // use esp_println
@@ -138,7 +134,7 @@ async fn main(spawner: Spawner) {
     spawner.spawn(toggle(led)).ok();
 
     spawner.spawn(connection(controller)).ok();
-    spawner.spawn(net_task(stack)).ok();
+    spawner.spawn(net_task(runner)).ok();
     spawner.spawn(tcp(stack)).ok();
 
     loop {
@@ -200,12 +196,12 @@ async fn connection(mut controller: WifiController<'static>) {
 }
 
 #[embassy_executor::task]
-async fn net_task(stack: &'static Stack<WifiDevice<'static, WifiStaDevice>>) {
-    stack.run().await
+async fn net_task(mut runner: Runner<'static, WifiDevice<'static, WifiStaDevice>>) {
+    runner.run().await
 }
 
 #[embassy_executor::task]
-async fn tcp(stack: &'static Stack<WifiDevice<'static, WifiStaDevice>>) {
+async fn tcp(stack: Stack<'static>) {
     let mut rx_buffer = [0; 4096];
     let mut tx_buffer = [0; 4096];
 
