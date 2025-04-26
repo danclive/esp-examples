@@ -13,7 +13,7 @@ use core::ptr::addr_of_mut;
 
 use esp_hal::{
     clock::CpuClock,
-    gpio::{Level, Output},
+    gpio::{Level, Output, OutputConfig},
     rng::Rng,
     timer::timg::TimerGroup,
 };
@@ -26,10 +26,7 @@ use embassy_time::{Duration, Timer};
 
 use esp_wifi::{
     init,
-    wifi::{
-        ClientConfiguration, Configuration, WifiController, WifiDevice, WifiEvent, WifiStaDevice,
-        WifiState,
-    },
+    wifi::{ClientConfiguration, Configuration, WifiController, WifiDevice, WifiEvent, WifiState},
     EspWifiController,
 };
 
@@ -75,27 +72,23 @@ async fn main(spawner: Spawner) {
 
     println!("Init!");
 
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        // Configure the CPU to run at the maximum frequency.
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
     // init wifi
     let timer1 = TimerGroup::new(peripherals.TIMG1);
     let rng = Rng::new(peripherals.RNG);
 
-    let init = &*mk_static!(
+    let esp_wifi_ctrl = &*mk_static!(
         EspWifiController<'static>,
         init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()
     );
     // let init = &*singleton!(:EspWifiController<'static> = init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()).unwrap();
 
     // set wifi mode
-    let wifi = peripherals.WIFI;
-    let (wifi_interface, controller) =
-        esp_wifi::wifi::new_with_mode(init, wifi, WifiStaDevice).unwrap();
+    let (controller, interfaces) = esp_wifi::wifi::new(esp_wifi_ctrl, peripherals.WIFI).unwrap();
+
+    let wifi_interface = interfaces.sta;
 
     let config = Config::dhcpv4(Default::default());
 
@@ -123,7 +116,7 @@ async fn main(spawner: Spawner) {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let led = Output::new(peripherals.GPIO8, Level::High);
+    let led = Output::new(peripherals.GPIO8, Level::High, OutputConfig::default());
 
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     esp_hal_embassy::init(timg0.timer0);
@@ -196,7 +189,7 @@ async fn connection(mut controller: WifiController<'static>) {
 }
 
 #[embassy_executor::task]
-async fn net_task(mut runner: Runner<'static, WifiDevice<'static, WifiStaDevice>>) {
+async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
     runner.run().await
 }
 
