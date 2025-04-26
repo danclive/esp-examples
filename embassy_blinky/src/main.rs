@@ -9,7 +9,7 @@
 
 use esp_hal::{
     clock::CpuClock,
-    gpio::{Level, Output},
+    gpio::{Level, Output, OutputConfig},
     timer::timg::TimerGroup,
 };
 
@@ -30,12 +30,8 @@ async fn main(spawner: Spawner) {
 
     println!("Init!");
 
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        // Configure the CPU to run at the maximum frequency.
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
     // use esp_println
     println!("hello world!");
@@ -51,7 +47,7 @@ async fn main(spawner: Spawner) {
     }
 
     // Set GPIO0 as an output, and set its state high initially.
-    let led = Output::new(peripherals.GPIO8, Level::High);
+    let led = Output::new(peripherals.GPIO8, Level::High, OutputConfig::default());
 
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     esp_hal_embassy::init(timg0.timer0);

@@ -2,11 +2,8 @@ use bitflags::bitflags;
 use embedded_hal::delay::DelayNs;
 use embedded_hal::i2c::I2c;
 
-// use esp_idf_sys::{esp, EspError};
-
 #[derive(Debug, Clone)]
-pub struct Sht3x<I2C, D> {
-    i2c: I2C,
+pub struct Sht3x<D> {
     address: Address,
     delay: D,
 }
@@ -19,25 +16,21 @@ const SOFT_RESET_TIME_MS: u8 = 1;
 // 4: Operation and Communication
 const COMMAND_WAIT_TIME_MS: u8 = 1;
 
-impl<I2C: I2c, D: DelayNs> Sht3x<I2C, D> {
+impl<D: DelayNs> Sht3x<D> {
     /// Creates a new driver.
-    pub const fn new(i2c: I2C, address: Address, delay: D) -> Self {
-        Self {
-            i2c,
-            address,
-            delay,
-        }
+    pub const fn new(address: Address, delay: D) -> Self {
+        Self { address, delay }
     }
 
     /// Send an I2C command.
-    fn command(
+    fn command<I2C: I2c>(
         &mut self,
+        i2c: &mut I2C,
         command: Command,
         wait_time: Option<u8>,
     ) -> Result<(), Error<I2C::Error>> {
         let cmd_bytes = command.value().to_be_bytes();
-        self.i2c
-            .write(self.address as u8, &cmd_bytes)
+        i2c.write(self.address as u8, &cmd_bytes)
             .map_err(Error::I2c)?;
 
         self.delay
@@ -47,16 +40,15 @@ impl<I2C: I2c, D: DelayNs> Sht3x<I2C, D> {
     }
 
     /// Take a temperature and humidity measurement.
-    pub fn measure(
+    pub fn measure<I2C: I2c>(
         &mut self,
+        i2c: &mut I2C,
         cs: ClockStretch,
         rpt: Repeatability,
     ) -> Result<Measurement, Error<I2C::Error>> {
-        self.command(Command::SingleShot(cs, rpt), Some(rpt.max_duration()))?;
+        self.command(i2c, Command::SingleShot(cs, rpt), Some(rpt.max_duration()))?;
         let mut buf = [0; 6];
-        self.i2c
-            .read(self.address as u8, &mut buf)
-            .map_err(Error::I2c)?;
+        i2c.read(self.address as u8, &mut buf).map_err(Error::I2c)?;
 
         let temperature = check_crc::<I2C>([buf[0], buf[1]], buf[2]).map(convert_temperature)?;
         let humidity = check_crc::<I2C>([buf[3], buf[4]], buf[5]).map(convert_humidity)?;
@@ -68,27 +60,23 @@ impl<I2C: I2c, D: DelayNs> Sht3x<I2C, D> {
     }
 
     /// Soft reset the sensor.
-    pub fn reset(&mut self) -> Result<(), Error<I2C::Error>> {
-        self.command(Command::SoftReset, Some(SOFT_RESET_TIME_MS))
+    pub fn reset<I2C: I2c>(&mut self, i2c: &mut I2C) -> Result<(), Error<I2C::Error>> {
+        self.command(i2c, Command::SoftReset, Some(SOFT_RESET_TIME_MS))
     }
 
-    pub fn aaa(&mut self) {}
-
     /// Read the status register.
-    pub fn status(&mut self) -> Result<Status, Error<I2C::Error>> {
-        self.command(Command::Status, None)?;
+    pub fn status<I2C: I2c>(&mut self, i2c: &mut I2C) -> Result<Status, Error<I2C::Error>> {
+        self.command(i2c, Command::Status, None)?;
         let mut buf = [0; 3];
-        self.i2c
-            .read(self.address as u8, &mut buf)
-            .map_err(Error::I2c)?;
+        i2c.read(self.address as u8, &mut buf).map_err(Error::I2c)?;
 
         let status = check_crc::<I2C>([buf[0], buf[1]], buf[2])?;
         Ok(Status::from_bits_truncate(status))
     }
 
     /// Clear the status register.
-    pub fn clear_status(&mut self) -> Result<(), Error<I2C::Error>> {
-        self.command(Command::ClearStatus, None)
+    pub fn clear_status<I2C: I2c>(&mut self, i2c: &mut I2C) -> Result<(), Error<I2C::Error>> {
+        self.command(i2c, Command::ClearStatus, None)
     }
 }
 
