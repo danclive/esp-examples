@@ -5,8 +5,7 @@ description = "blinky"
 readme = "README.md"
 keywords = ["esp-hal", "esp32"]
 license = "MIT"
-edition = "2021"
-rust-version = "1.81"
+edition = "2024"
 
 [features]
 default = [

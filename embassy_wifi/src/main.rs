@@ -25,12 +25,11 @@ use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 
 use esp_wifi::{
-    init,
+    EspWifiController, init,
     wifi::{ClientConfiguration, Configuration, WifiController, WifiDevice, WifiEvent, WifiState},
-    EspWifiController,
 };
 
-use embassy_net::{tcp::TcpSocket, Config, Ipv4Address, Runner, Stack, StackResources};
+use embassy_net::{Config, Ipv4Address, Runner, Stack, StackResources, tcp::TcpSocket};
 
 // const SSID: &str = env!("SSID");
 // const PASSWORD: &str = env!("PASSWORD");

@@ -5,8 +5,7 @@ description = "embassy_wifi"
 readme = "README.md"
 keywords = ["esp-hal", "esp32"]
 license = "MIT"
-edition = "2021"
-rust-version = "1.81"
+edition = "2024"
 
 [features]
 default = [
@@ -51,6 +50,9 @@ embassy = [
 
 wifi = [
     "esp-wifi",
+    "esp-wifi/wifi",
+    "esp-wifi/smoltcp",
+    "esp-wifi/csi",
     "embassy-net",
 ]
 
@@ -66,7 +68,7 @@ esp-hal-embassy = { version = "0.7", optional = true  }
 embassy-executor = { version = "0.7", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
 embassy-time = { version = "0.4", optional = true }
 
-esp-wifi  = { version = "0.13.0", features = ["wifi", "smoltcp", "csi"], optional = true }
+esp-wifi  = { version = "0.13.0", optional = true }
 embassy-net = { version = "0.6.0", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
 
 static_cell = "2.1.0"
