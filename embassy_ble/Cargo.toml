@@ -18,11 +18,11 @@ default = [
 
 log = [
     "dep:log",
-    "esp-hal/log",
-    "esp-println/log",
+    "esp-hal/log-04",
+    "esp-println/log-04",
     "esp-backtrace/println",
     "embassy-executor?/log",
-    "esp-wifi?/log",
+    "esp-wifi?/log-04",
 ]
 
 defmt = [
@@ -52,19 +52,19 @@ ble = [
 ]
 
 [dependencies]
-esp-hal = { version = "1.0.0-beta.0", features = ["unstable"] }
-esp-println = { version = "0.13.1", default-features = false, features = ["critical-section", "colors"] }
-esp-backtrace = { version = "0.15.1", features = ["panic-handler", "exception-handler"]  }
+esp-hal = { version = "1.0.0-beta.1", features = ["unstable"] }
+esp-println = { version = "0.14.0", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.16.0", features = ["panic-handler", "exception-handler"]  }
 
-defmt = { version = "0.3", optional = true }
+defmt = { version = "1.0.1", optional = true }
 log = { version = "0.4", optional = true }
 
-esp-hal-embassy = { version = "0.7", optional = true  }
+esp-hal-embassy = { version = "0.8", optional = true  }
 embassy-executor = { version = "0.7", package = "embassy-executor", features = ["arch-riscv32"], optional = true }
 embassy-time = { version = "0.4", optional = true }
 
-esp-wifi  = { version = "0.13.0", optional = true }
+esp-wifi  = { version = "0.14.1", optional = true }
 bleps = { git = "https://github.com/bjoernQ/bleps", package = "bleps", rev = "a5148d8ae679e021b78f53fd33afb8bb35d0b62e", features = [ "macros", "async"] }
 
 static_cell = "2.1.0"
-esp-alloc = { version = "0.7" }
+esp-alloc = { version = "0.8" }

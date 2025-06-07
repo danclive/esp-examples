@@ -86,9 +86,9 @@ async fn main(spawner: Spawner) {
     );
     // let init = &*singleton!(:EspWifiController<'static> = init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()).unwrap();
 
-    let mut bluetooth = peripherals.BT;
+    let bluetooth = peripherals.BT;
 
-    let connector = BleConnector::new(esp_wifi_ctrl, &mut bluetooth);
+    let connector = BleConnector::new(esp_wifi_ctrl, bluetooth);
 
     let now = || time::Instant::now().duration_since_epoch().as_millis();
     let mut ble = Ble::new(connector, now);
