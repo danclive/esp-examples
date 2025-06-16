@@ -7,14 +7,18 @@
 #![no_std]
 #![no_main]
 
-use esp_hal::{clock::CpuClock, delay::Delay, entry, rmt::Rmt};
+use esp_hal::{
+    clock::CpuClock,
+    delay::Delay,
+    main,
+    rmt::Rmt,
+    time::{Duration, Rate},
+};
 
 use esp_backtrace as _;
 use esp_println::println;
 
-use fugit::{ExtU64, RateExtU32};
-
-#[entry]
+#[main]
 fn main() -> ! {
     #[cfg(feature = "log")]
     {
@@ -23,12 +27,8 @@ fn main() -> ! {
         esp_println::logger::init_logger(log::LevelFilter::Info);
     }
 
-    let peripherals = esp_hal::init({
-        let mut config = esp_hal::Config::default();
-        // Configure the CPU to run at the maximum frequency.
-        config.cpu_clock = CpuClock::max();
-        config
-    });
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
     // use esp_println
     println!("hello world!");
@@ -43,13 +43,14 @@ fn main() -> ! {
         log::trace!("this is trace message");
     }
 
-    let rmt = Rmt::new(peripherals.RMT, 80.MHz()).unwrap();
+    let rmt: Rmt<'_, esp_hal::Blocking> =
+        Rmt::new(peripherals.RMT, Rate::from_mhz(80)).expect("Failed to initialize RMT");
 
-    use esp_hal_smartled::{smartLedBuffer, SmartLedsAdapter};
+    use esp_hal_smartled::{smart_led_buffer, SmartLedsAdapter};
     // see https://docs.rs/smart-leds/latest/smart_leds/
     use smart_leds::{colors::*, SmartLedsWrite};
 
-    let rmt_buffer = smartLedBuffer!(1);
+    let rmt_buffer = smart_led_buffer!(1);
     let mut led = SmartLedsAdapter::new(rmt.channel0, peripherals.GPIO8, rmt_buffer);
 
     let colors = [
@@ -72,6 +73,6 @@ fn main() -> ! {
         }
 
         // or using `fugit` duration
-        delay.delay(2.secs());
+        delay.delay(Duration::from_secs(2));
     }
 }
