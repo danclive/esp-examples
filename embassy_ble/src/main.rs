@@ -82,7 +82,7 @@ async fn main(spawner: Spawner) {
 
     let esp_wifi_ctrl = &*mk_static!(
         EspWifiController<'static>,
-        init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()
+        init(timer1.timer0, rng).unwrap()
     );
     // let init = &*singleton!(:EspWifiController<'static> = init(timer1.timer0, rng, peripherals.RADIO_CLK).unwrap()).unwrap();
 
