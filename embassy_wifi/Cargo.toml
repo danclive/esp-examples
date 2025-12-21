@@ -18,58 +18,63 @@ default = [
 
 log = [
     "dep:log",
+    "esp-bootloader-esp-idf/log-04",
     "esp-hal/log-04",
     "esp-println/log-04",
     "esp-backtrace/println",
+    "esp-rtos/log-04",
     "embassy-executor?/log",
-    "esp-wifi?/log-04",
+    "esp-radio?/log-04",
 ]
 
 defmt = [
     "dep:defmt",
+    "esp-bootloader-esp-idf/defmt",
     "esp-hal/defmt",
     "esp-println/defmt-espflash",
     "esp-backtrace/defmt",
+    "esp-rtos/defmt",
     "embassy-executor?/defmt",
-    "esp-wifi?/defmt",
+    "esp-radio?/defmt",
     "embassy-net?/defmt"
 ]
 
 jtag = ["esp-println/jtag-serial"]
 uart = ["esp-println/uart"]
 
-esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3", "esp-wifi?/esp32c3", "esp-hal-embassy?/esp32c3"]
-esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6", "esp-wifi?/esp32c6", "esp-hal-embassy?/esp32c6"]
+esp32c3 = ["esp-bootloader-esp-idf/esp32c3", "esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3", "esp-rtos/esp32c3", "esp-radio?/esp32c3",]
+esp32c6 = ["esp-bootloader-esp-idf/esp32c6", "esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6", "esp-rtos/esp32c6", "esp-radio?/esp32c6", ]
 
 embassy = [
-    "esp-hal-embassy",
     "embassy-executor",
     "embassy-time",
-    "embassy-executor/task-arena-size-20480"
+    "esp-rtos/embassy",
 ]
 
 wifi = [
-    "esp-wifi",
-    "esp-wifi/wifi",
-    "esp-wifi/smoltcp",
-    "esp-wifi/csi",
+    "esp-radio",
+    "esp-radio/wifi",
+    "esp-radio/smoltcp",
+    "esp-radio/csi",
+    "esp-rtos/esp-radio",
     "embassy-net",
 ]
 
 [dependencies]
-esp-hal = { version = "1.0.0-rc.0", features = ["unstable"] }
-esp-println = { version = "0.15.0", default-features = false, features = ["critical-section", "colors"] }
-esp-backtrace = { version = "0.17.0", features = ["panic-handler", "exception-handler"]  }
+esp-bootloader-esp-idf = { version = "0.4.0" }
+esp-hal = { version = "1.0.0", features = ["unstable"] }
+esp-println = { version = "0.16.1", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.18.1", features = ["panic-handler"]  }
+esp-rtos = { version = "0.2" }
 
 defmt = { version = "1.0.1", optional = true }
 log = { version = "0.4", optional = true }
 
-esp-hal-embassy = { version = "0.9", optional = true  }
-embassy-executor = { version = "0.7", features = ["arch-riscv32"], optional = true }
-embassy-time = { version = "0.4", optional = true }
+embassy-executor = { version = "0.9", features = ["arch-riscv32"], optional = true }
+embassy-time = { version = "0.5", optional = true }
 
-esp-wifi  = { version = "0.15", optional = true }
+esp-radio  = { version = "0.17", features = ["unstable", "wifi"], optional = true }
 embassy-net = { version = "0.7.0", features = ["tcp", "udp", "dhcpv4", "medium-ethernet"], optional = true }
 
 static_cell = "2.1.0"
-esp-alloc = { version = "0.8" }
+esp-alloc = { version = "0.9" }

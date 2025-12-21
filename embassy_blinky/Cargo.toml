@@ -17,42 +17,45 @@ default = [
 
 log = [
     "dep:log",
+    "esp-bootloader-esp-idf/log-04",
     "esp-hal/log-04",
     "esp-println/log-04",
     "esp-backtrace/println",
+    "esp-rtos?/log-04",
     "embassy-executor?/log",
 ]
 
 defmt = [
     "dep:defmt",
+    "esp-bootloader-esp-idf/defmt",
     "esp-hal/defmt",
     "esp-println/defmt-espflash",
     "esp-backtrace/defmt",
-    "esp-hal-embassy?/defmt",
+    "esp-rtos?/defmt",
     "embassy-executor?/defmt",
 ]
 
 jtag = ["esp-println/jtag-serial"]
 uart = ["esp-println/uart"]
 
-esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3", "esp-hal-embassy?/esp32c3"]
-esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6", "esp-hal-embassy?/esp32c6"]
+esp32c3 = ["esp-bootloader-esp-idf/esp32c3", "esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3", "esp-rtos?/esp32c3"]
+esp32c6 = ["esp-bootloader-esp-idf/esp32c6", "esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6", "esp-rtos?/esp32c6"]
 
 embassy = [
-    "esp-hal-embassy",
     "embassy-executor",
     "embassy-time",
-    "embassy-executor/task-arena-size-20480"
+    "esp-rtos/embassy",
 ]
 
 [dependencies]
-esp-hal = { version = "1.0.0-rc.0", features = ["unstable"] }
-esp-println = { version = "0.15.0", default-features = false, features = ["critical-section", "colors"] }
-esp-backtrace = { version = "0.17.0", features = ["panic-handler", "exception-handler"]  }
+esp-bootloader-esp-idf = { version = "0.4.0" }
+esp-hal = { version = "1.0.0", features = ["unstable"] }
+esp-println = { version = "0.16.1", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.18.1", features = ["panic-handler"]  }
+esp-rtos = { version = "0.2", optional = true }
 
 defmt = { version = "1.0.1", optional = true }
 log = { version = "0.4", optional = true }
 
-esp-hal-embassy = { version = "0.9", optional = true  }
-embassy-executor = { version = "0.7", features = ["arch-riscv32"], optional = true }
-embassy-time = { version = "0.4", optional = true }
+embassy-executor = { version = "0.9", features = ["arch-riscv32"], optional = true }
+embassy-time = { version = "0.5", optional = true }

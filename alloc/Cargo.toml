@@ -17,6 +17,7 @@ default = [
 
 log = [
     "dep:log",
+    "esp-bootloader-esp-idf/log-04",
     "esp-hal/log-04",
     "esp-println/log-04",
     "esp-backtrace/println",
@@ -24,6 +25,7 @@ log = [
 
 defmt = [
     "dep:defmt",
+    "esp-bootloader-esp-idf/defmt",
     "esp-hal/defmt",
     "esp-println/defmt-espflash",
     "esp-backtrace/defmt",
@@ -32,8 +34,8 @@ defmt = [
 jtag = ["esp-println/jtag-serial"]
 uart = ["esp-println/uart"]
 
-esp32c3 = ["esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
-esp32c6 = ["esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
+esp32c3 = ["esp-bootloader-esp-idf/esp32c3", "esp-hal/esp32c3", "esp-println/esp32c3", "esp-backtrace/esp32c3"]
+esp32c6 = ["esp-bootloader-esp-idf/esp32c6", "esp-hal/esp32c6", "esp-println/esp32c6", "esp-backtrace/esp32c6"]
 
 alloc = [
     "esp-alloc",
@@ -42,14 +44,15 @@ alloc = [
 ]
 
 [dependencies]
-esp-hal = { version = "1.0.0-rc.0", features = ["unstable"] }
-esp-println = { version = "0.15.0", default-features = false, features = ["critical-section", "colors"] }
-esp-backtrace = { version = "0.17.0", features = ["panic-handler", "exception-handler"]  }
+esp-bootloader-esp-idf = { version = "0.4.0" }
+esp-hal = { version = "1.0.0", features = ["unstable"] }
+esp-println = { version = "0.16.1", default-features = false, features = ["critical-section", "colors"] }
+esp-backtrace = { version = "0.18.1", features = ["panic-handler"]  }
 
 defmt = { version = "1.0.1", optional = true }
 log = { version = "0.4", optional = true }
 
-esp-alloc = { version = "0.8", optional = true }
+esp-alloc = { version = "0.9", optional = true }
 
 serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
 serde_json = { version = "1.0", default-features = false, optional = true }

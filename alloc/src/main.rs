@@ -35,6 +35,8 @@ fn init_heap() {
     }
 }
 
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[main]
 fn main() -> ! {
     init_heap();

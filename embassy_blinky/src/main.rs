@@ -7,6 +7,7 @@
 #![no_std]
 #![no_main]
 
+use esp_hal::interrupt::software::SoftwareInterruptControl;
 use esp_hal::{
     clock::CpuClock,
     gpio::{Level, Output, OutputConfig},
@@ -19,7 +20,9 @@ use esp_println::println;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 
-#[esp_hal_embassy::main]
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[esp_rtos::main]
 async fn main(spawner: Spawner) {
     #[cfg(feature = "log")]
     {
@@ -50,7 +53,8 @@ async fn main(spawner: Spawner) {
     let led = Output::new(peripherals.GPIO8, Level::High, OutputConfig::default());
 
     let timg0 = TimerGroup::new(peripherals.TIMG0);
-    esp_hal_embassy::init(timg0.timer0);
+    let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
+    esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
 
     println!("embassy init!");
 

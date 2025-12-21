@@ -18,6 +18,8 @@ use esp_hal::{
 use esp_backtrace as _;
 use esp_println::println;
 
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[main]
 fn main() -> ! {
     #[cfg(feature = "log")]

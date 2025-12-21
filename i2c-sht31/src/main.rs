@@ -23,6 +23,8 @@ use sht3x::{Address, Sht3x};
 
 pub mod sht3x;
 
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[main]
 fn main() -> ! {
     #[cfg(feature = "log")]

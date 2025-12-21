@@ -61,6 +61,8 @@ fn get_any_value() -> rhai::Dynamic {
     42_i32.into() // standard types can use '.into()'
 }
 
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[main]
 fn main() -> ! {
     init_heap();
