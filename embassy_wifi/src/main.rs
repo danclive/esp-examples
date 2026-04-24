@@ -25,25 +25,18 @@ use esp_println::println;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 
-use esp_radio::{
-    Controller,
-    wifi::{
-        ClientConfig, ModeConfig, ScanConfig, WifiController, WifiDevice, WifiEvent, WifiStaState,
-    },
-};
+use esp_radio::wifi::{self, ControllerConfig, Interface, WifiController, sta::StationConfig};
 
-use embassy_net::{Config, Ipv4Address, Runner, Stack, StackResources, tcp::TcpSocket};
+use embassy_net::{self, Ipv4Address, Runner, Stack, StackResources, tcp::TcpSocket};
 
-// const SSID: &str = env!("SSID");
-// const PASSWORD: &str = env!("PASSWORD");
-const SSID: &str = "HOME_2";
-const PASSWORD: &str = "lalala123456";
+const SSID: &str = "HOME";
+const PASSWORD: &str = "12345678";
 
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
         static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
         #[deny(unused_attributes)]
-        let x = STATIC_CELL.uninit().write(($val));
+        let x = STATIC_CELL.uninit().write($val);
         x
     }};
 }
@@ -73,13 +66,23 @@ async fn main(spawner: Spawner) {
 
     println!("esp_rtos start!");
 
-    let esp_radio_ctrl = &*mk_static!(Controller<'static>, esp_radio::init().unwrap());
+    let station_config = wifi::Config::Station(
+        StationConfig::default()
+            .with_ssid(SSID)
+            .with_password(PASSWORD.into()),
+    );
 
-    let (controller, interfaces) =
-        esp_radio::wifi::new(esp_radio_ctrl, peripherals.WIFI, Default::default()).unwrap();
-    let wifi_interface = interfaces.sta;
+    println!("Starting wifi");
+    let (controller, interfaces) = esp_radio::wifi::new(
+        peripherals.WIFI,
+        ControllerConfig::default().with_initial_config(station_config),
+    )
+    .unwrap();
+    println!("Wifi configured and started!");
 
-    let config = Config::dhcpv4(Default::default());
+    let wifi_interface = interfaces.station;
+
+    let config = embassy_net::Config::dhcpv4(Default::default());
 
     let rng = Rng::new();
     let seed = (rng.random() as u64) << 32 | rng.random() as u64;
@@ -88,7 +91,7 @@ async fn main(spawner: Spawner) {
     let (stack, runner) = embassy_net::new(
         wifi_interface,
         config,
-        mk_static!(StackResources<8>, StackResources::<8>::new()),
+        mk_static!(StackResources<3>, StackResources::<3>::new()),
         seed,
     );
 
@@ -108,12 +111,12 @@ async fn main(spawner: Spawner) {
     // Set GPIO0 as an output, and set its state high initially.
     let led = Output::new(peripherals.GPIO8, Level::High, OutputConfig::default());
 
-    spawner.spawn(run()).ok();
-    spawner.spawn(toggle(led)).ok();
+    spawner.spawn(run().unwrap());
+    spawner.spawn(toggle(led).unwrap());
 
-    spawner.spawn(connection(controller)).ok();
-    spawner.spawn(net_task(runner)).ok();
-    spawner.spawn(tcp(stack)).ok();
+    spawner.spawn(connection(controller).unwrap());
+    spawner.spawn(net_task(runner).unwrap());
+    spawner.spawn(tcp(stack).unwrap());
 
     loop {
         println!("main loop!");
@@ -143,54 +146,28 @@ async fn toggle(mut led: Output<'static>) {
 #[embassy_executor::task]
 async fn connection(mut controller: WifiController<'static>) {
     println!("start connection task");
-    println!("Device capabilities: {:?}", controller.capabilities());
-    loop {
-        match esp_radio::wifi::sta_state() {
-            WifiStaState::Connected => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::StaDisconnected).await;
-                Timer::after(Duration::from_millis(5000)).await
-            }
-            WifiStaState::Disconnected => {
-                println!("Disconnected");
-            }
-            _ => {}
-        }
-        if !matches!(controller.is_started(), Ok(true)) {
-            let client_config = ModeConfig::Client(
-                ClientConfig::default()
-                    .with_ssid(SSID.into())
-                    .with_password(PASSWORD.into()),
-            );
-            controller.set_config(&client_config).unwrap();
-            println!("Starting wifi");
-            controller.start_async().await.unwrap();
-            println!("Wifi started!");
 
-            println!("Scan");
-            let scan_config = ScanConfig::default().with_max(10);
-            let result = controller
-                .scan_with_config_async(scan_config)
-                .await
-                .unwrap();
-            for ap in result {
-                println!("{:?}", ap);
-            }
-        }
+    loop {
         println!("About to connect...");
+
+        if controller.is_connected() {
+            println!("Already connected!");
+            Timer::after(Duration::from_millis(5000)).await;
+            continue;
+        }
 
         match controller.connect_async().await {
             Ok(_) => println!("Wifi connected!"),
             Err(e) => {
                 println!("Failed to connect to wifi: {e:?}");
-                Timer::after(Duration::from_millis(5000)).await
+                Timer::after(Duration::from_millis(5000)).await;
             }
         }
     }
 }
 
 #[embassy_executor::task]
-async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
+async fn net_task(mut runner: Runner<'static, Interface<'static>>) {
     runner.run().await
 }
 
@@ -205,6 +182,8 @@ async fn tcp(stack: Stack<'static>) {
         }
         Timer::after(Duration::from_millis(500)).await;
     }
+
+    stack.wait_config_up().await;
 
     println!("Waiting to get IP address...");
     loop {
@@ -222,7 +201,7 @@ async fn tcp(stack: Stack<'static>) {
 
         socket.set_timeout(Some(Duration::from_secs(10)));
 
-        let remote_endpoint = (Ipv4Address::new(142, 250, 185, 115), 80);
+        let remote_endpoint = (Ipv4Address::new(3, 234, 199, 80), 80);
         println!("connecting...");
         let r = socket.connect(remote_endpoint).await;
         if let Err(e) = r {
@@ -234,7 +213,7 @@ async fn tcp(stack: Stack<'static>) {
         loop {
             let r = write_all(
                 &mut socket,
-                b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n",
+                b"GET /get HTTP/1.0\r\nHost: httpbin.org\r\n\r\n",
             )
             .await;
             if let Err(e) = r {
